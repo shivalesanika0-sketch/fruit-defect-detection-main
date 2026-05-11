@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Scanner — Produce AI 2026</title>
+<script>
+  (function(){try{if(localStorage.getItem("theme")==="dark"){document.documentElement.classList.add("dark");}}catch(e){}}());
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== SITE NAV ===== -->
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    <span class="nav-logo-icon"></span>
+    <span>Produce AI <em>2026</em></span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="{{ url_for('home') }}"        class="nav-link">Home</a>
+    <a href="{{ url_for('index') }}"       class="nav-link active">AI Scanner</a>
+    <a href="{{ url_for('methodology') }}" class="nav-link">Methodology</a>
+    <a href="{{ url_for('results') }}"     class="nav-link">Results</a>
+    <a href="{{ url_for('future') }}"      class="nav-link">Future Scope</a>
+    <a href="{{ url_for('about') }}"       class="nav-link">About</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn" id="themeSwitch" aria-label="Toggle theme">
+      <span class="theme-btn-track"><span class="theme-btn-thumb"></span></span>
+    </button>
+    <button class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-gradient"></div>
+    <div class="hero-shape hero-shape-1"></div>
+    <div class="hero-shape hero-shape-2"></div>
+    <div class="hero-shape hero-shape-3"></div>
+  </div>
+  <div class="hero-content">
+    <h1 class="hero-title">AI Produce Quality &amp; Freshness Analyzer</h1>
+    <p class="hero-subtitle">Upload a photo. Get instant quality, defect, and nutrition insights—powered by vision AI.</p>
+  </div>
+</section>
+
+<main class="main-content">
+  <div class="glass-card">
+
+    {% if not result %}
+
+    <div class="upload-section">
+      <h2 class="section-title">Inspect produce</h2>
+      <p class="section-desc">Upload a clear photo of a fruit or vegetable. We'll analyze quality, freshness, and nutrients.</p>
+      <form action="/predict" method="post" enctype="multipart/form-data" id="predictForm">
+        <div class="upload-zone" id="dropZone">
+          <input type="file" name="image" id="fileInput" accept="image/*" required onchange="previewImage(event)" class="file-input-sr-only">
+          <label for="fileInput" class="upload-zone-label">
+            <span class="upload-zone-inner" id="uploadText">
+              <span class="upload-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </span>
+              <span class="upload-label">Click to upload or drag &amp; drop</span>
+              <span class="upload-hint">JPG, PNG</span>
+            </span>
+            <img id="previewImg" class="preview-img hidden" alt="Preview">
+          </label>
+        </div>
+        <div class="upload-actions">
+          <button type="button" class="btn btn-secondary" id="useCameraBtn">
+            <span class="upload-action-icon">📷</span>
+            <span>Use Camera</span>
+          </button>
+        </div>
+        <div class="camera-panel hidden" id="cameraPanel" aria-hidden="true">
+          <div class="camera-header">
+            <div class="camera-title">
+              <span class="camera-title-icon">🎥</span>
+              <span>Live Camera</span>
+            </div>
+            <button type="button" class="camera-close" id="cameraCloseBtn" aria-label="Close camera">✕</button>
+          </div>
+          <div class="camera-body">
+            <div class="camera-video-wrap">
+              <video id="cameraVideo" autoplay playsinline muted></video>
+              <div class="camera-video-overlay"></div>
+            </div>
+            <div class="camera-controls">
+              <button type="button" class="btn btn-secondary btn-sm" id="cameraFlipBtn">Switch Camera</button>
+              <button type="button" class="btn btn-primary btn-sm" id="cameraCaptureBtn">Capture</button>
+              <button type="button" class="btn btn-secondary btn-sm hidden" id="cameraRetakeBtn">Retake</button>
+            </div>
+            <div class="camera-meta">
+              <span class="camera-status" id="cameraStatus"></span>
+              <span class="camera-quality" id="cameraQualityHint"></span>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" name="source" id="imageSource" value="upload">
+        <button type="submit" class="btn btn-primary" id="analyzeBtn" disabled>
+          <span id="btnText">Analyze with AI</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="scan-overlay" id="scanOverlay" aria-hidden="true">
+      <div class="scan-overlay-content">
+        <div class="scan-pulse"></div>
+        <h3 class="scan-title">Analyzing with AI</h3>
+        <ul class="scan-steps">
+          <li class="scan-step">Uploading image…</li>
+          <li class="scan-step">Running deep vision model…</li>
+          <li class="scan-step">Detecting defects…</li>
+          <li class="scan-step">Estimating freshness…</li>
+        </ul>
+        <div class="scan-progress-wrap">
+          <div class="scan-progress-bar" id="scanProgressBar"></div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+
+    <!-- ===== RESULT PAGE ===== -->
+    <div class="result-page">
+
+      <!-- ROW 1: Image + Meta -->
+      <div class="result-top">
+
+        <div class="result-img-wrap" id="resultImageWrap">
+          <img src="{{ result.image_url }}" alt="{{ result.fruit }}">
+          <div class="scan-line"></div>
+          <div class="img-verdict-badge {% if result.verdict == 'Fresh' %}ivb-fresh{% elif result.verdict == 'Consume at Your Own Risk' %}ivb-warn{% else %}ivb-danger{% endif %}">
+            {% if result.verdict == 'Fresh' %}✅ Fresh{% elif result.verdict == 'Consume at Your Own Risk' %}⚠️ Caution{% else %}❌ Non-Consumable{% endif %}
+          </div>
+        </div>
+
+        <div class="result-meta">
+          <div class="badge-row">
+            {% if result.category == "Fruit" %}<span class="badge badge-fruit">🍎 Fruit</span>
+            {% elif result.category == "Vegetable" %}<span class="badge badge-vegetable">🥦 Vegetable</span>
+            {% else %}<span class="badge badge-unknown">❓ Unknown</span>{% endif %}
+            {% if result.source == "camera" %}
+            <span class="badge badge-camera">📷 Using camera input</span>
+            {% endif %}
+          </div>
+          <h2 class="result-name {% if result.fruit == 'Unknown Item' %}unknown-name{% endif %}">{{ result.fruit }}</h2>
+          <p class="result-confidence">
+            Confidence: <strong>{{ result.confidence }}%</strong>
+            {% if result.suggestions|length > 1 %}<span class="result-also"> · Also considered: {{ result.suggestions[1:] | join(', ') }}</span>{% endif %}
+          </p>
+
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-top">
+                <span class="stat-label">🌿 Freshness</span>
+                <span class="stat-pct {% if result.freshness|float >= 72 %}pct-high{% elif result.freshness|float >= 40 %}pct-mid{% else %}pct-low{% endif %}">{{ result.freshness }}%</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill {% if result.freshness|float >= 72 %}bar-high{% elif result.freshness|float >= 40 %}bar-mid{% else %}bar-low{% endif %}" data-width="{{ result.freshness }}%"></div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-top">
+                <span class="stat-label">🔬 Defect Level</span>
+                <span class="stat-pct {% if result.defect_score|float <= 20 %}pct-high{% elif result.defect_score|float <= 50 %}pct-mid{% else %}pct-low{% endif %}">{{ result.defect_score }}%</span>
+              </div>
+              <div class="stat-bar-track">
+                <div class="stat-bar-fill {% if result.defect_score|float <= 20 %}bar-high{% elif result.defect_score|float <= 50 %}bar-mid{% else %}bar-low{% endif %}" data-width="{{ result.defect_score }}%"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="verdict-banner {% if result.verdict == 'Fresh' %}vb-fresh{% elif result.verdict == 'Consume at Your Own Risk' %}vb-warn{% else %}vb-danger{% endif %}">
+            {% if result.verdict == 'Fresh' %}✅{% elif result.verdict == 'Consume at Your Own Risk' %}⚠️{% else %}❌{% endif %}
+            {{ result.verdict }}
+          </div>
+
+          <a href="/" class="btn btn-secondary" style="margin-top:1rem;">← Analyze Another</a>
+        </div>
+      </div>
+
+      <!-- ROW 2: Nutrition — always open, hidden for Non-Consumable -->
+      {% if result.nutrients and result.verdict != 'Non-Consumable' %}
+      <div class="nutr-card">
+        <div class="nutr-header">
+          <span class="nutr-header-icon">🧪</span>
+          <span class="nutr-header-title">Nutritional Highlights</span>
+        </div>
+        <div class="nutr-body">
+          <div class="nutr-section">
+            <p class="nutr-section-label">Vitamins</p>
+            <div class="nutr-pills">
+              {% for v in result.nutrients.vitamins %}<span class="npill npill-v">{{ v }}</span>{% endfor %}
+            </div>
+          </div>
+          <div class="nutr-section">
+            <p class="nutr-section-label">Minerals</p>
+            <div class="nutr-pills">
+              {% for m in result.nutrients.minerals %}<span class="npill npill-m">{{ m }}</span>{% endfor %}
+            </div>
+          </div>
+          <div class="nutr-section nutr-section-full">
+            <p class="nutr-section-label">Health Benefits</p>
+            <div class="nutr-pills">
+              {% for b in result.nutrients.benefits %}<span class="npill npill-b">{{ b }}</span>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ROW 3: AI Insights — collapsible -->
+      {% if result.ai_insights %}
+      <div class="collapsible-panel" id="insightsPanel">
+        <button class="collapsible-trigger" id="insightsTrigger" aria-expanded="false">
+          <span class="collapsible-trigger-label"><span>🤖</span><span>AI Insights</span></span>
+          <span class="collapsible-chevron"></span>
+        </button>
+        <div class="collapsible-body">
+          <div class="insights-grid">
+            <div class="insight-card">
+              <div class="insight-card-icon">🔍</div>
+              <div class="insight-card-body"><strong>Why this verdict?</strong><p>{{ result.ai_insights.reason }}</p></div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-card-icon">📦</div>
+              <div class="insight-card-body"><strong>Storage Tip</strong><p>{{ result.ai_insights.storage_tip }}</p></div>
+            </div>
+            <div class="insight-card">
+              <div class="insight-card-icon">💚</div>
+              <div class="insight-card-body"><strong>Health Note</strong><p>{{ result.ai_insights.health_note }}</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+    {% endif %}
+
+  </div>
+</main>
+
+<footer class="main-footer">
+  <p>&copy; 2026 Produce AI. Quality &amp; nutrition at a glance. &nbsp;|&nbsp;
+    <a href="{{ url_for('home') }}" style="color:var(--accent);">Home</a> ·
+    <a href="{{ url_for('methodology') }}" style="color:var(--accent);">Methodology</a> ·
+    <a href="{{ url_for('about') }}" style="color:var(--accent);">About</a>
+  </p>
+</footer>
+
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

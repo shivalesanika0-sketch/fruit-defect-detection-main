@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Methodology — Produce AI 2026</title>
+<script>(function(){try{if(localStorage.getItem("theme")==="dark")document.documentElement.classList.add("dark");}catch(e){}}());</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+<style>
+.page-hero {
+  padding: 5rem 0 3.5rem;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.page-hero::before {
+  content:''; position:absolute; inset:0; z-index:0;
+  background: radial-gradient(ellipse 70% 80% at 60% -10%, var(--accent-soft), transparent);
+}
+.page-hero > .container { position:relative; z-index:1; }
+.page-hero h1 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; letter-spacing:-0.035em; margin-bottom:1rem; }
+.page-hero p  { font-size:1.05rem; color:var(--text-muted); max-width:620px; line-height:1.75; }
+
+/* Concept cards */
+.concept-card {
+  background: var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:2rem;
+  display:flex; gap:1.25rem; align-items:flex-start;
+  transition:transform 0.25s, box-shadow 0.25s;
+}
+.concept-card:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); }
+.concept-num {
+  width:40px; height:40px; border-radius:12px; flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff; font-weight:800; font-size:0.9rem;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 3px 12px var(--accent-glow);
+}
+.concept-card h3 { font-size:1rem; font-weight:700; margin-bottom:0.4rem; }
+.concept-card p  { font-size:0.875rem; color:var(--text-muted); line-height:1.65; }
+
+/* Architecture diagram */
+.arch-diagram {
+  background: var(--bg-elevated); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:2.5rem; overflow:hidden;
+}
+.arch-flow {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:0.75rem;
+}
+.arch-node {
+  display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+  flex:1; min-width:100px;
+}
+.arch-node-box {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1rem 0.75rem;
+  text-align:center; width:100%;
+  font-size:0.82rem; font-weight:600;
+  transition:border-color 0.2s, transform 0.2s;
+}
+.arch-node-box:hover { border-color:var(--accent); transform:translateY(-3px); }
+.arch-node-box .arch-icon { font-size:1.5rem; display:block; margin-bottom:0.35rem; }
+.arch-arrow { color:var(--text-subtle); font-size:1.2rem; flex-shrink:0; }
+@media(max-width:700px){ .arch-flow{ flex-direction:column; } .arch-arrow{ transform:rotate(90deg); } }
+
+/* CLIP vs CNN table */
+.compare-table { width:100%; border-collapse:collapse; }
+.compare-table th,.compare-table td { padding:0.85rem 1.1rem; text-align:left; border-bottom:1px solid var(--border); font-size:0.9rem; }
+.compare-table th { font-weight:700; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); background:var(--bg-elevated); }
+.compare-table tr:last-child td { border-bottom:none; }
+.compare-table .win { color:var(--success); font-weight:700; }
+.compare-table .lose { color:var(--danger); }
+
+/* Formula block */
+.formula-block {
+  background:var(--bg-elevated); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.5rem 2rem;
+  font-family:'Fira Code','Cascadia Code',monospace;
+  font-size:0.95rem; color:var(--accent);
+  text-align:center; letter-spacing:0.02em;
+  border-left:4px solid var(--accent);
+}
+
+/* Sidebar TOC */
+.methodology-layout { display:grid; grid-template-columns:220px 1fr; gap:3rem; align-items:start; }
+@media(max-width:900px){ .methodology-layout{grid-template-columns:1fr;} }
+.toc {
+  position:sticky; top:calc(var(--nav-h) + 1.5rem);
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:1.25rem;
+}
+.toc h4 { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:0.75rem; }
+.toc a  { display:block; font-size:0.85rem; color:var(--text-muted); padding:0.35rem 0.5rem; border-radius:8px; margin-bottom:0.1rem; transition:color 0.2s, background 0.2s; }
+.toc a:hover { color:var(--accent); background:var(--accent-soft); }
+</style>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    <span class="nav-logo-icon"></span>
+    <span>Produce AI <em>2026</em></span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="{{ url_for('home') }}"        class="nav-link">Home</a>
+    <a href="{{ url_for('index') }}"     class="nav-link">AI Scanner</a>
+    <a href="{{ url_for('methodology') }}" class="nav-link active">Methodology</a>
+    <a href="{{ url_for('results') }}"     class="nav-link">Results</a>
+    <a href="{{ url_for('future') }}"      class="nav-link">Future Scope</a>
+    <a href="{{ url_for('about') }}"       class="nav-link">About</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn" aria-label="Toggle theme">
+      <span class="theme-btn-track"><span class="theme-btn-thumb"></span></span>
+    </button>
+    <a href="{{ url_for('index') }}" class="nav-cta">Try AI Scanner ↗</a>
+    <button class="nav-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page-hero">
+  <div class="container">
+    <span class="label-tag">📖 Academic Methodology</span>
+    <h1>How the System Works</h1>
+    <p>A deep-dive into the theory, architecture, and technical decisions behind the Produce AI freshness analyzer — written for academic review and portfolio presentation.</p>
+  </div>
+</div>
+
+<main class="section">
+  <div class="container">
+    <div class="methodology-layout">
+
+      <!-- TOC -->
+      <aside class="toc">
+        <h4>Contents</h4>
+        <a href="#introduction">Introduction</a>
+        <a href="#importance">Importance of Food Quality</a>
+        <a href="#computer-vision">Computer Vision</a>
+        <a href="#deep-learning">Deep Learning Basics</a>
+        <a href="#zero-shot">Zero-Shot Learning</a>
+        <a href="#multimodal">Multimodal AI</a>
+        <a href="#clip-vs-cnn">CLIP vs CNN</a>
+        <a href="#architecture">System Architecture</a>
+        <a href="#formula">Freshness Formula</a>
+      </aside>
+
+      <!-- Content -->
+      <article style="display:flex;flex-direction:column;gap:4rem;">
+
+        <section id="introduction">
+          <span class="label-tag">01 · Introduction</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Project Overview</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1rem;">This project presents an AI-powered system designed to assess the freshness and quality of fruits and vegetables using state-of-the-art computer vision and zero-shot learning techniques. Rather than relying on traditional machine learning approaches that require large labelled datasets, this system leverages OpenCLIP — a contrastive language-image pretraining model — to achieve accurate classification across dozens of produce categories without any domain-specific training data.</p>
+          <p style="color:var(--text-muted);line-height:1.8;">The system integrates three core analytical modules: zero-shot classification, surface defect detection, and freshness estimation — all delivered through a clean, accessible web interface built with Flask and modern CSS.</p>
+        </section>
+
+        <section id="importance">
+          <span class="label-tag">02 · Context</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Why Food Quality Matters</h2>
+          <div class="grid-2" style="margin-bottom:1.5rem;">
+            <div class="concept-card">
+              <div class="concept-num">🌍</div>
+              <div><h3>Food Security</h3><p>With a global population exceeding 8 billion, reliable access to nutritious food is a critical challenge. Accurate freshness assessment reduces unnecessary disposal and stretches food supply further.</p></div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-num">💰</div>
+              <div><h3>Economic Impact</h3><p>Food spoilage costs the global economy over $1 trillion annually. Retailers, distributors, and consumers all suffer losses from produce that spoils before consumption.</p></div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-num">🏥</div>
+              <div><h3>Public Health</h3><p>Consuming spoiled produce can cause foodborne illnesses. An automated quality system provides an additional safety layer, especially in regions with limited food inspection infrastructure.</p></div>
+            </div>
+            <div class="concept-card">
+              <div class="concept-num">🌱</div>
+              <div><h3>Environmental Benefit</h3><p>Food waste accounts for 8–10% of global greenhouse gas emissions. Reducing waste through intelligent inspection directly supports climate and sustainability goals.</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="computer-vision">
+          <span class="label-tag">03 · Theory</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">What is Computer Vision?</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;">Computer Vision (CV) is a field of artificial intelligence that trains computers to interpret and understand the visual world. Using digital images and videos, CV systems can accurately identify objects, classify scenes, detect patterns, and make decisions — mimicking human visual cognition at machine speed and scale.</p>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;">In the context of this project, computer vision is applied to two primary tasks:</p>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-icon card-icon-blue">📸</div>
+              <h3>Image Classification</h3>
+              <p>Identifying which fruit or vegetable appears in the image, with a confidence score for each candidate category.</p>
+            </div>
+            <div class="card">
+              <div class="card-icon card-icon-purple">🔎</div>
+              <h3>Defect Segmentation</h3>
+              <p>Identifying pixels that represent unhealthy surface conditions using color space analysis, quantifying the defect as a percentage of total area.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="deep-learning">
+          <span class="label-tag">04 · Foundations</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Deep Learning Basics</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;">Deep learning is a subset of machine learning that uses artificial neural networks with many layers (hence "deep") to learn representations of data. Unlike traditional hand-crafted feature engineering, deep networks automatically discover the features most useful for a given task through training on large datasets.</p>
+          <div class="how-bg" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;">
+            <div class="step-line">
+              <div class="step-item"><div class="step-num">1</div><div class="step-body"><h4>Input Layer</h4><p>Raw pixel values from the image are fed into the network. For CLIP, images are divided into patches (like ViT architecture).</p></div></div>
+              <div class="step-item"><div class="step-num">2</div><div class="step-body"><h4>Feature Extraction (Encoder)</h4><p>Each transformer layer learns increasingly abstract representations — from edges and textures to semantic concepts like "ripe tomato" or "mouldy surface".</p></div></div>
+              <div class="step-item"><div class="step-num">3</div><div class="step-body"><h4>Embedding Space</h4><p>The image is projected into a high-dimensional vector space where similar images cluster together. This embedding is what CLIP compares against text embeddings.</p></div></div>
+              <div class="step-item"><div class="step-num">4</div><div class="step-body"><h4>Similarity Scoring</h4><p>Cosine similarity between image and text embeddings produces a confidence score for each candidate label. The highest scorer is the final classification.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="zero-shot">
+          <span class="label-tag">05 · Key Innovation</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Zero-Shot Learning</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;">Zero-shot learning (ZSL) enables a model to classify objects it has never explicitly seen during training. Instead of requiring labelled examples of every class, ZSL models are trained to understand the semantic relationship between visual features and descriptive text.</p>
+          <div class="grid-2" style="margin-bottom:1.5rem;">
+            <div class="card">
+              <div class="card-icon card-icon-green">✅</div>
+              <h3>Advantages of ZSL</h3>
+              <p>No domain-specific dataset collection. Works on new produce categories immediately. Reduces annotation cost and labelling effort dramatically.</p>
+            </div>
+            <div class="card">
+              <div class="card-icon card-icon-orange">⚡</div>
+              <h3>How it works here</h3>
+              <p>We define text prompts like "a fresh red apple" for 50+ produce types. CLIP compares the uploaded image to all prompts simultaneously and returns the best match.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="multimodal">
+          <span class="label-tag">06 · Architecture</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Multimodal AI</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.5rem;">Multimodal AI refers to models that can process and relate information from multiple types of input — in CLIP's case, images and text. Both modalities are encoded into a shared embedding space, allowing direct comparison between a visual scene and a textual description.</p>
+          <div class="concept-card">
+            <div class="concept-num">🔗</div>
+            <div>
+              <h3>Contrastive Pretraining</h3>
+              <p>CLIP was trained on 400 million image-text pairs from the internet. During training, it learns to push matching image-text pairs closer together in embedding space and pull non-matching pairs apart. This contrastive objective gives it a rich, generalisable understanding of visual semantics.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="clip-vs-cnn">
+          <span class="label-tag">07 · Design Choice</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Why CLIP Instead of CNN?</h2>
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;">
+            <table class="compare-table">
+              <thead>
+                <tr><th>Criterion</th><th>Traditional CNN</th><th>OpenCLIP (Ours)</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Training Data Required</td><td class="lose">Large labelled dataset per class</td><td class="win">None (zero-shot)</td></tr>
+                <tr><td>New Category Support</td><td class="lose">Requires full retraining</td><td class="win">Add a text prompt, done</td></tr>
+                <tr><td>Generalisation</td><td class="lose">Poor on unseen data</td><td class="win">Excellent out-of-the-box</td></tr>
+                <tr><td>Unknown Handling</td><td class="lose">Forces a classification</td><td class="win">Low confidence = flagged unknown</td></tr>
+                <tr><td>Deployment Cost</td><td class="lose">Expensive data collection</td><td class="win">Zero annotation cost</td></tr>
+                <tr><td>Accuracy on Known Classes</td><td class="win">Very high with enough data</td><td>Competitive without data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="architecture">
+          <span class="label-tag">08 · System Design</span>
+          <h2 class="section-title" style="margin-bottom:1.5rem;">Full System Architecture</h2>
+          <div class="arch-diagram" style="margin-bottom:1.5rem;">
+            <div class="arch-flow">
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">📤</span>Upload</div>
+              </div>
+              <span class="arch-arrow">→</span>
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">⚙️</span>Preprocess</div>
+              </div>
+              <span class="arch-arrow">→</span>
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">🤖</span>CLIP Encode</div>
+              </div>
+              <span class="arch-arrow">→</span>
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">🎯</span>Similarity</div>
+              </div>
+              <span class="arch-arrow">→</span>
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">🔬</span>HSV Defect</div>
+              </div>
+              <span class="arch-arrow">→</span>
+              <div class="arch-node">
+                <div class="arch-node-box"><span class="arch-icon">📊</span>Results</div>
+              </div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="code-block">
+<span class="code-comment"># Simplified CLIP pipeline</span>
+image = preprocess(pil_image).unsqueeze(0)
+text  = tokenize(produce_labels)
+
+<span class="code-keyword">with</span> torch.no_grad():
+    img_feat  = model.encode_image(image)
+    txt_feat  = model.encode_text(text)
+    probs     = (img_feat @ txt_feat.T).softmax(dim=-1)
+
+top_label = labels[probs.argmax()]
+confidence = probs.max().item() * <span class="code-string">100</span>
+            </div>
+            <div class="code-block">
+<span class="code-comment"># HSV Defect Detection</span>
+hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+lower = np.array([<span class="code-string">0, 50, 20</span>])
+upper = np.array([<span class="code-string">30, 255, 150</span>])
+
+mask  = cv2.inRange(hsv, lower, upper)
+score = (mask > <span class="code-string">0</span>).sum() / mask.size * <span class="code-string">100</span>
+
+<span class="code-comment"># Freshness = weighted combination</span>
+freshness = <span class="code-fn">calc_freshness</span>(confidence, score)
+            </div>
+          </div>
+        </section>
+
+        <section id="formula">
+          <span class="label-tag">09 · Scoring</span>
+          <h2 class="section-title" style="margin-bottom:1rem;">Freshness Estimation Formula</h2>
+          <p style="color:var(--text-muted);line-height:1.8;margin-bottom:1.25rem;">The freshness score is derived from a weighted combination of the CLIP confidence score and the defect score, ensuring both visual classification quality and surface condition contribute meaningfully:</p>
+          <div class="formula-block" style="margin-bottom:1.25rem;">
+            Freshness (%) = (Confidence × 0.6) + ((100 − Defect) × 0.4)
+          </div>
+          <div class="grid-3">
+            <div class="card" style="text-align:center;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">✅</div>
+              <h3 style="color:var(--success);">Fresh</h3>
+              <p>Freshness ≥ 72% and defect &lt; 30%</p>
+            </div>
+            <div class="card" style="text-align:center;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">⚠️</div>
+              <h3 style="color:var(--warning);">Caution</h3>
+              <p>Freshness 40–72% or defect 30–60%</p>
+            </div>
+            <div class="card" style="text-align:center;">
+              <div style="font-size:2rem;margin-bottom:0.5rem;">❌</div>
+              <h3 style="color:var(--danger);">Non-Consumable</h3>
+              <p>Freshness &lt; 40% or defect &gt; 60%</p>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom">
+      <span>© 2026 Produce AI — College Final Year Project</span>
+      <div style="display:flex;gap:1rem;">
+        <a href="{{ url_for('home') }}" style="color:var(--text-muted);">Home</a>
+        <a href="{{ url_for('index') }}" style="color:var(--text-muted);">AI Scanner</a>
+        <a href="{{ url_for('about') }}" style="color:var(--text-muted);">About</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+</body>
+</html>

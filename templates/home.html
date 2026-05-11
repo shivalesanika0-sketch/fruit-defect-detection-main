@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produce AI 2026 — AI Freshness & Quality Analyzer</title>
+<meta name="description" content="AI-powered fruit and vegetable freshness detection using OpenCLIP, computer vision, and zero-shot learning.">
+<script>(function(){try{if(localStorage.getItem("theme")==="dark")document.documentElement.classList.add("dark");}catch(e){}}());</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
+<style>
+/* ---- Hero ---- */
+.hero {
+  min-height: calc(100vh - var(--nav-h));
+  display: flex; align-items: center;
+  position: relative; overflow: hidden;
+  padding: 5rem 0 4rem;
+  isolation: isolate;
+}
+.hero::after {
+  content:''; position:absolute; inset:0; z-index:-1;
+  background-image: url('https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1800&q=80&fit=crop');
+  background-size: cover; background-position: center;
+  filter: saturate(1.25) brightness(1.05) contrast(1.02);
+}
+html.dark .hero::after {
+  filter: saturate(1.2) brightness(0.38) contrast(1.05);
+}
+.hero-content { max-width: 720px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.12em; color: #86efac;
+  background: rgba(22,163,74,0.18); border: 1px solid rgba(22,163,74,0.35);
+  padding: 0.35rem 1rem; border-radius: 100px; margin-bottom: 1.5rem;
+}
+.hero-eyebrow-dot { width:7px;height:7px;border-radius:50%;background:#4ade80;animation:pulse-ring 2s ease-in-out infinite; }
+.hero h1 { font-family:'Sora',sans-serif; font-size:clamp(2.6rem,6vw,4.2rem); font-weight:800; letter-spacing:-0.04em; line-height:1.06; color:#fff; margin-bottom:1.25rem; }
+.hero h1 span { background:linear-gradient(90deg,#86efac,#38bdf8); -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; }
+.hero p { font-size:1.1rem; color:rgba(255,255,255,0.75); max-width:560px; line-height:1.75; margin-bottom:2.25rem; }
+.hero-actions { display:flex; gap:1rem; flex-wrap:wrap; }
+.hero-badge-row { display:flex; gap:1.5rem; margin-top:3rem; flex-wrap:wrap; }
+.hero-badge { display:flex; align-items:center; gap:8px; font-size:0.85rem; color:rgba(255,255,255,0.65); }
+.hero-badge-icon { font-size:1rem; }
+
+/* ---- Problem ---- */
+.problem-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; }
+@media(max-width:768px){.problem-grid{grid-template-columns:1fr;}}
+.problem-visual { position:relative; }
+.problem-stat-cards { display:flex; flex-direction:column; gap:1rem; }
+.problem-stat-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:1.25rem 1.5rem;
+  display:flex; gap:1rem; align-items:center;
+  box-shadow:var(--shadow-sm); transition:transform 0.25s;
+}
+.problem-stat-card:hover { transform:translateX(6px); }
+.problem-stat-icon { font-size:1.8rem; flex-shrink:0; }
+.problem-stat-num { font-family:'Sora',sans-serif; font-size:1.6rem; font-weight:800; letter-spacing:-0.03em; }
+.problem-stat-label { font-size:0.82rem; color:var(--text-muted); }
+
+/* ---- Features ---- */
+.features-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.25rem; }
+@media(max-width:600px){.features-grid{grid-template-columns:1fr;}}
+.feature-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:2rem;
+  transition:transform 0.25s,box-shadow 0.25s,border-color 0.25s;
+  position:relative; overflow:hidden;
+}
+.feature-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0; opacity:0; transition:opacity 0.3s;
+}
+.feature-card:hover { transform:translateY(-5px); box-shadow:var(--shadow-lg); }
+.feature-card:hover::before { opacity:1; }
+.fc-blue::before   { background:linear-gradient(90deg,var(--accent),#60a5fa); }
+.fc-purple::before { background:linear-gradient(90deg,var(--accent-2),#a78bfa); }
+.fc-teal::before   { background:linear-gradient(90deg,var(--accent-3),#22d3ee); }
+.fc-green::before  { background:linear-gradient(90deg,var(--success),#4ade80); }
+.feature-icon { font-size:2rem; margin-bottom:1rem; }
+.feature-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:0.5rem; }
+.feature-card p  { font-size:0.9rem; color:var(--text-muted); line-height:1.65; }
+
+/* ---- How it works ---- */
+.how-bg {
+  background:var(--bg-elevated);
+  border-radius:var(--radius-xl);
+  padding:3.5rem;
+  border:1px solid var(--border);
+}
+@media(max-width:600px){.how-bg{padding:2rem 1.5rem;}}
+
+/* ---- Applications ---- */
+.app-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:1.75rem;
+  text-align:center; transition:transform 0.25s, box-shadow 0.25s;
+}
+.app-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); }
+.app-card .app-icon { font-size:2.4rem; margin-bottom:0.75rem; }
+.app-card h4 { font-weight:700; font-size:1rem; margin-bottom:0.4rem; }
+.app-card p  { font-size:0.875rem; color:var(--text-muted); line-height:1.6; }
+
+/* ---- Tech stack ---- */
+.tech-row { display:flex; flex-wrap:wrap; gap:0.75rem; justify-content:center; }
+
+/* ---- Stats banner ---- */
+.stats-banner {
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 100%);
+  border-radius:var(--radius-xl); padding:3.5rem; color:#fff;
+}
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem; }
+@media(max-width:700px){.stats-grid{grid-template-columns:repeat(2,1fr);}}
+.stats-item { text-align:center; }
+.stats-num { font-family:'Sora',sans-serif; font-size:clamp(2rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.04em; }
+.stats-label { font-size:0.85rem; opacity:0.8; margin-top:0.25rem; }
+
+/* ---- CTA section ---- */
+.cta-section {
+  text-align:center; padding:5rem 0;
+}
+.cta-box {
+  background:var(--bg-elevated); border:1px solid var(--border);
+  border-radius:var(--radius-xl); padding:4rem 3rem;
+  position:relative; overflow:hidden;
+}
+.cta-box::before {
+  content:''; position:absolute; inset:0; z-index:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, var(--accent-soft), transparent);
+}
+.cta-box > * { position:relative; z-index:1; }
+.cta-box h2 { font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.03em; margin-bottom:1rem; }
+.cta-box p  { color:var(--text-muted); margin-bottom:2rem; font-size:1.05rem; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-logo">
+    <span class="nav-logo-icon"></span>
+    <span>Produce AI <em>2026</em></span>
+  </a>
+  <div class="nav-links" id="navLinks">
+    <a href="{{ url_for('home') }}"        class="nav-link">Home</a>
+    <a href="{{ url_for('index') }}"     class="nav-link">AI Scanner</a>
+    <a href="{{ url_for('methodology') }}" class="nav-link">Methodology</a>
+    <a href="{{ url_for('results') }}"     class="nav-link">Results</a>
+    <a href="{{ url_for('future') }}"      class="nav-link">Future Scope</a>
+    <a href="{{ url_for('about') }}"       class="nav-link">About</a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-btn" aria-label="Toggle theme">
+      <span class="theme-btn-track"><span class="theme-btn-thumb"></span></span>
+    </button>
+    <a href="{{ url_for('index') }}" class="nav-cta">Try AI Scanner ↗</a>
+    <button class="nav-hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content animate-up">
+      <div class="hero-eyebrow">
+        <span class="hero-eyebrow-dot"></span>
+        AI-Powered · Zero-Shot Learning · Real-Time Analysis
+      </div>
+      <h1>Detect Freshness.<br>Reduce <span>Food Waste</span>.</h1>
+      <p>An intelligent computer vision system that analyzes fruit and vegetable quality, detects defects, and delivers nutritional insights — all from a single photo.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">🔬 Try the AI Scanner</a>
+        <a href="{{ url_for('methodology') }}" class="btn btn-ghost btn-lg" style="border-color:rgba(255,255,255,0.3);">Learn How It Works</a>
+      </div>
+      <div class="hero-badge-row">
+        <span class="hero-badge"><span class="hero-badge-icon">✅</span> OpenCLIP Zero-Shot</span>
+        <span class="hero-badge"><span class="hero-badge-icon">✅</span> HSV Defect Detection</span>
+        <span class="hero-badge"><span class="hero-badge-icon">✅</span> Nutrition Insights</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS BANNER -->
+<section class="section-sm">
+  <div class="container">
+    <div class="stats-banner animate-up">
+      <div class="stats-grid">
+        <div class="stats-item"><div class="stats-num">1.3B</div><div class="stats-label">Tonnes of food wasted yearly</div></div>
+        <div class="stats-item"><div class="stats-num">97%</div><div class="stats-label">Top-1 classification confidence</div></div>
+        <div class="stats-item"><div class="stats-num">50+</div><div class="stats-label">Produce categories detected</div></div>
+        <div class="stats-item"><div class="stats-num">&lt;2s</div><div class="stats-label">End-to-end analysis time</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="section">
+  <div class="container">
+    <div class="problem-grid">
+      <div>
+        <span class="label-tag">🌍 The Problem</span>
+        <h2 class="section-title" style="margin-bottom:1rem;">Food waste is a <span class="text-gradient">global crisis</span></h2>
+        <p style="color:var(--text-muted);line-height:1.75;margin-bottom:1.5rem;">Every year, over a third of all food produced for human consumption is lost or wasted. A major cause is the inability to accurately assess produce quality at scale — especially during harvest, transport, and retail.</p>
+        <p style="color:var(--text-muted);line-height:1.75;">Traditional manual inspection is slow, inconsistent, and error-prone. This project proposes an AI-driven alternative: instant, accurate, scalable freshness detection from any camera.</p>
+      </div>
+      <div class="problem-stat-cards">
+        <div class="problem-stat-card">
+          <span class="problem-stat-icon">🌱</span>
+          <div><div class="problem-stat-num" style="color:var(--danger);">$1T</div><div class="problem-stat-label">Annual economic loss from food waste</div></div>
+        </div>
+        <div class="problem-stat-card">
+          <span class="problem-stat-icon">🌡️</span>
+          <div><div class="problem-stat-num" style="color:var(--warning);">8–10%</div><div class="problem-stat-label">Of global greenhouse gas from food waste</div></div>
+        </div>
+        <div class="problem-stat-card">
+          <span class="problem-stat-icon">🏭</span>
+          <div><div class="problem-stat-num" style="color:var(--accent);">45%</div><div class="problem-stat-label">Of fruits &amp; vegetables wasted globally</div></div>
+        </div>
+        <div class="problem-stat-card">
+          <span class="problem-stat-icon">👁️</span>
+          <div><div class="problem-stat-num" style="color:var(--success);">AI</div><div class="problem-stat-label">Can detect defects humans miss</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section bg-elevated">
+  <div class="container">
+    <div class="section-head">
+      <span class="label-tag">✨ Key Features</span>
+      <h2 class="section-title">Everything in one scan</h2>
+      <p class="section-subtitle">From classification to nutrition, our AI pipeline delivers complete produce intelligence in seconds.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card fc-blue">
+        <div class="feature-icon">🎯</div>
+        <h3>Zero-Shot Freshness Classification</h3>
+        <p>Using OpenCLIP's multimodal embeddings, the system classifies produce without any domain-specific training. Simply describe the item — the model understands it.</p>
+      </div>
+      <div class="feature-card fc-purple">
+        <div class="feature-icon">🔬</div>
+        <h3>Surface Defect Detection</h3>
+        <p>HSV color space analysis identifies blemishes, rot patches, and abnormal discoloration. Results are expressed as a percentage defect score with visual feedback.</p>
+      </div>
+      <div class="feature-card fc-teal">
+        <div class="feature-icon">🧪</div>
+        <h3>Nutritional Insight Engine</h3>
+        <p>A curated nutrition database maps detected produce to vitamins, minerals, and health benefits — making every scan an educational moment.</p>
+      </div>
+      <div class="feature-card fc-green">
+        <div class="feature-icon">🤖</div>
+        <h3>Unknown Object Handling</h3>
+        <p>When confidence is low, the system gracefully flags the item as "Unknown" rather than forcing a wrong classification — a key safety feature for real-world deployment.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="label-tag">⚙️ System Pipeline</span>
+      <h2 class="section-title">From photo to insight</h2>
+      <p class="section-subtitle">A six-stage AI pipeline that transforms a raw image into comprehensive produce intelligence.</p>
+    </div>
+    <div class="how-bg">
+      <div class="step-line">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-body"><h4>Image Upload</h4><p>User uploads a photo via the web interface. Accepted formats: JPG, PNG. Drag &amp; drop supported.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-body"><h4>Preprocessing</h4><p>The image is resized, normalized, and converted to a tensor compatible with CLIP's visual encoder.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-body"><h4>CLIP Classification</h4><p>OpenCLIP computes cosine similarity between the image embedding and 50+ produce text prompts. Top match + confidence returned.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-body"><h4>HSV Defect Detection</h4><p>Converted to HSV, defect pixels (brown, dark, unusual hue) are masked and scored as a percentage of total surface area.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-body"><h4>Freshness Estimation</h4><p>A weighted formula combining defect score and CLIP confidence produces a 0–100% freshness score and a verdict: Fresh, Caution, or Non-Consumable.</p></div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-body"><h4>Nutrition &amp; AI Insights</h4><p>Matched produce is looked up in the nutrition database. AI generates storage tips, health notes, and verdict reasoning for display.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATIONS -->
+<section class="section bg-elevated">
+  <div class="container">
+    <div class="section-head">
+      <span class="label-tag">🏭 Applications</span>
+      <h2 class="section-title">Where this system fits</h2>
+      <p class="section-subtitle">From farm to fork, AI-powered freshness detection has real-world impact across the entire food supply chain.</p>
+    </div>
+    <div class="grid-4">
+      <div class="app-card"><div class="app-icon">🏪</div><h4>Supermarkets</h4><p>Automate shelf inspection and flag items nearing expiry before customer complaints arise.</p></div>
+      <div class="app-card"><div class="app-icon">🏭</div><h4>Warehouses</h4><p>Scan produce at receiving to catch quality issues before they enter storage or distribution.</p></div>
+      <div class="app-card"><div class="app-icon">🌾</div><h4>Agriculture</h4><p>Help farmers grade and sort produce at harvest with an affordable camera-based tool.</p></div>
+      <div class="app-card"><div class="app-icon">🚚</div><h4>Supply Chain</h4><p>Monitor quality across transit checkpoints to reduce losses between producer and retailer.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="label-tag">🛠️ Tech Stack</span>
+      <h2 class="section-title">Built with modern AI tools</h2>
+      <p class="section-subtitle">Every component chosen for accuracy, speed, and open-source accessibility.</p>
+    </div>
+    <div class="tech-row">
+      <span class="tech-chip"><span class="tech-chip-icon">🐍</span> Python 3.10</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🌶️</span> Flask</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🤗</span> OpenCLIP</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🔥</span> PyTorch</span>
+      <span class="tech-chip"><span class="tech-chip-icon">📷</span> OpenCV</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🖼️</span> Pillow</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🔢</span> NumPy</span>
+      <span class="tech-chip"><span class="tech-chip-icon">🎨</span> CSS3 / JS</span>
+      <span class="tech-chip"><span class="tech-chip-icon">📄</span> Jinja2</span>
+      <span class="tech-chip"><span class="tech-chip-icon">☁️</span> Unsplash API</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <div class="cta-box">
+      <h2>Ready to see it in action?</h2>
+      <p>Upload any fruit or vegetable photo and get instant AI analysis — freshness, defects, and nutrition in under 2 seconds.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">🔬 Launch AI Scanner</a>
+        <a href="{{ url_for('methodology') }}" class="btn btn-outline btn-lg">📖 Read the Methodology</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-logo" style="margin-bottom:0.75rem;">
+          <span class="nav-logo-icon"></span>
+          <span>Produce AI <em>2026</em></span>
+        </div>
+        <p>AI-powered produce freshness & quality analysis. Built as a college final-year project using OpenCLIP, Flask, and computer vision.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Pages</h4>
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('index') }}">AI Scanner</a>
+        <a href="{{ url_for('methodology') }}">Methodology</a>
+        <a href="{{ url_for('results') }}">Results</a>
+      </div>
+      <div class="footer-col">
+        <h4>Project</h4>
+        <a href="{{ url_for('future') }}">Future Scope</a>
+        <a href="{{ url_for('about') }}">About</a>
+      </div>
+      <div class="footer-col">
+        <h4>Tech</h4>
+        <a href="#">OpenCLIP</a>
+        <a href="#">PyTorch</a>
+        <a href="#">Flask</a>
+        <a href="#">OpenCV</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Produce AI — College Final Year Project</span>
+      <span>Built with ❤️ &amp; Python</span>
+    </div>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='site.js') }}"></script>
+</body>
+</html>
